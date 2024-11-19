@@ -27,7 +27,7 @@ public class GetDialPadLeaderboardsData implements Database.Batchable<SObject>, 
                 if (responseMap.containsKey('request_id')) {
                     String requestId = (String) responseMap.get('request_id');
                     HttpRequest request2 = new HttpRequest();
-                    String endpoint2 = 'https://dialpad.com/api/v2/stats/' + requestId + '?apikey=w6E5Apc3JZVYW3WA8DZG6d2QdFTaavLUy9PvgGjAACaPEC9b9RwZuBT9LJeEWTmkq5Ur33tznD28NRP7SXJGezqUb2K3twJWjYaE';
+                    String endpoint2 = 'https://dialpad.com/api/v2/stats/' + requestId + '?apikey=your_api_key';
                     request2.setEndpoint(endpoint2);
                     request2.setMethod('GET');
                     request2.setHeader('accept', 'application/json');
