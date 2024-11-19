@@ -6,7 +6,7 @@ public class GetDialPadLeaderboardsData implements Database.Batchable<SObject>, 
     public void execute(Database.BatchableContext bc, List<SObject> scope) {
         Http http = new Http();
         HttpRequest request = new HttpRequest();
-        request.setEndpoint('https://dialpad.com/api/v2/stats?apikey=w6E5Apc3JZVYW3WA8DZG6d2QdFTaavLUy9PvgGjAACaPEC9b9RwZuBT9LJeEWTmkq5Ur33tznD28NRP7SXJGezqUb2K3twJWjYaE');
+        request.setEndpoint('https://dialpad.com/api/v2/stats?apikey=your_api_key');
         request.setMethod('POST');
         request.setHeader('Accept', 'application/json');
         request.setHeader('Content-Type', 'application/json');
