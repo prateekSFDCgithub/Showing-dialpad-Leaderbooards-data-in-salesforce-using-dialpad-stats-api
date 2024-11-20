@@ -11,8 +11,10 @@ public class GetDialPadLeaderboardsData implements Database.Batchable<SObject>, 
         request.setHeader('Accept', 'application/json');
         request.setHeader('Content-Type', 'application/json');
         request.setBody('{' +
-                        '"is_today": true,' +
+                        '"is_today": true,'+ 
                         '"export_type": "stats",' +
+                        /*'"days_ago_start": 1,'+
+                        '"days_ago_end": 365,'+*/
                         '"stat_type": "calls",' +
                         '"timezone": "UTC",' +
                         '"group_by": "user"' +      
@@ -66,7 +68,23 @@ public class GetDialPadLeaderboardsData implements Database.Batchable<SObject>, 
     }
     
     private void parseCsvAndStore(String csvContent) {
-        List<String> lines = csvContent.split('\n');
+        List<String> lines = new List<String>();
+        String currentLine = '';
+    
+        // Split CSV content into lines manually
+        for (Integer i = 0; i < csvContent.length(); i++) {
+            String character = csvContent.substring(i, i + 1);
+            if (character == '\n') {
+                lines.add(currentLine);
+                currentLine = '';
+            } else {
+                currentLine += character;
+            }
+        }
+        if (currentLine!='') {
+            lines.add(currentLine);
+        }
+    
         if (lines.size() > 1) {
             // Parse headers to find column indices
             List<String> headers = lines[0].split(',');
@@ -82,33 +100,37 @@ public class GetDialPadLeaderboardsData implements Database.Batchable<SObject>, 
             Integer abandonedIndex = headers.indexOf('abandoned');
             Integer cancelledIndex = headers.indexOf('cancelled');
             Integer hourIndex = headers.indexOf('hour');
-            
+    
             List<Leaderboard_Dialpad__c> recordsToInsert = new List<Leaderboard_Dialpad__c>();
-            
+    
             // Parse rows and extract relevant data
             for (Integer i = 1; i < lines.size(); i++) {
                 List<String> row = lines[i].split(',');
                 
-                if (String.isBlank(row[nameIndex])) {
-                    continue;
+                if (row.size() != headers.size() || String.isBlank(row[nameIndex])) {
+                    continue; // Skip invalid rows
                 }
+                
                 Leaderboard_Dialpad__c record = new Leaderboard_Dialpad__c();
                 record.Name = row[nameIndex];
                 record.Email__c = row[emailIndex];
                 record.User_ID__c = row[userIdIndex];
                 record.Date__c = Date.valueOf(row[dateIndex]);
                 record.All_Calls__c = Integer.valueOf(row[allCallsIndex]);
-                record.hour__c = integer.valueOf(row[hourIndex]);
-                record.Talk_Duration__c = decimal.valueOf(row[talkDurationIndex]);
-                record.Avg_Talk_Duration__c = decimal.valueOf(row[avgTalkDurationIndex]);
-                record.Answered__c = Integer.valueOf(row[answeredIndex]);
+                record.Talk_Duration__c = Decimal.valueOf(row[talkDurationIndex]);
+                record.Avg_Talk_Duration__c = Decimal.valueOf(row[avgTalkDurationIndex]);
+                if(answeredIndex!=-1){
+                     record.Answered__c = Integer.valueOf(row[answeredIndex]);
+                }
+                if(hourIndex!=-1){
+                  record.hour__c = Integer.valueOf(row[hourIndex]);  
+                }
                 record.Missed__c = Integer.valueOf(row[missedIndex]);
                 record.Abandoned__c = Integer.valueOf(row[abandonedIndex]);
                 record.Cancelled__c = Integer.valueOf(row[cancelledIndex]);
                 recordsToInsert.add(record);
-                
             }
-            
+    
             if (!recordsToInsert.isEmpty()) {
                 insert recordsToInsert;
                 System.debug('Inserted ' + recordsToInsert.size() + ' records.');
@@ -117,4 +139,6 @@ public class GetDialPadLeaderboardsData implements Database.Batchable<SObject>, 
             }
         }
     }
+    
+
 }
